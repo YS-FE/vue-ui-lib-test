@@ -45,14 +45,12 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     }
   },
   entry: {
-    app: './demo/main.js'
+    app: path.resolve(__dirname, "../demo/main.js")
   },
   output: {
-    path: config.build.assetsRoot,
+    path: config.dev.assetsRoot,
     filename: '[name].js',
-    publicPath: process.env.NODE_ENV === 'production'
-      ? config.build.assetsPublicPath
-      : config.dev.assetsPublicPath
+    publicPath: '/'
   },
   plugins: [
     new webpack.DefinePlugin({
@@ -67,14 +65,6 @@ const devWebpackConfig = merge(baseWebpackConfig, {
       template: 'index.html',
       inject: true
     }),
-    // copy custom static assets
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, '../static'),
-        to: config.dev.assetsSubDirectory,
-        ignore: ['.*']
-      }
-    ])
   ]
 })
 

@@ -30,10 +30,17 @@ const webpackConfig = merge(baseWebpackConfig, {
   },
   output: {
     path: config.build.assetsRoot,
-    // filename: 'UiLib.js',
     filename: '[name]/index.js',
     library: 'UiLib',
     libraryTarget: 'umd' // commonjs2
+  },
+  externals: {
+    vue: {
+      root: 'Vue',
+      commonjs: 'vue',
+      commonjs2: 'vue',
+      amd: 'vue'
+    }
   },
   plugins: [
     // http://vuejs.github.io/vue-loader/en/workflow/production.html
