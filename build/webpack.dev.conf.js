@@ -45,7 +45,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     }
   },
   entry: {
-    app: path.resolve(__dirname, "../demo/main.js")
+    app: path.resolve(__dirname, "../examples/main.js")
   },
   output: {
     path: config.dev.assetsRoot,

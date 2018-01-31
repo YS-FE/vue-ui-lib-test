@@ -4,7 +4,30 @@ const utils = require('./utils')
 const config = require('../config')
 const vueLoaderConfig = require('./vue-loader.conf')
 
-function resolve (dir) {
+
+var md = require('markdown-it')();
+var CopyWebpackPlugin = require('copy-webpack-plugin');
+var striptags = require('./strip-tags');
+var slugify = require('transliteration').slugify;
+
+
+var wrap = function(render) {
+  return function() {
+    return render.apply(this, arguments)
+      .replace('<code v-pre class="', '<code class="hljs ')
+      .replace('<code>', '<code class="hljs">');
+  };
+};
+
+
+function convert(str) {
+  str = str.replace(/(&#x)(\w{4});/gi, function($0) {
+    return String.fromCharCode(parseInt(encodeURIComponent($0).replace(/(%26%23x)(\w{4})(%3B)/g, '$2'), 16));
+  });
+  return str;
+}
+
+function resolve(dir) {
   return path.join(__dirname, '..', dir)
 }
 
@@ -19,10 +42,43 @@ module.exports = {
     }
   },
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.md$/,
-        loader: 'vue-markdown-loader'
+        loader: 'vue-markdown-loader',
+        options: {
+          preprocess: (MarkdownIt, source) => {
+            MarkdownIt.renderer.rules.table_open = function() {
+              return '<table class="table">'
+            }
+            MarkdownIt.renderer.rules.fence = wrap(MarkdownIt.renderer.rules.fence)
+            return source
+          },
+          use: [
+            [require('markdown-it-container'), 'demo', {
+              // 用于校验包含demo的代码块
+              validate: params => params.trim().match(/^demo\s*(.*)$/),
+              render: function(tokens, idx) {
+                var m = tokens[idx].info.trim().match(/^demo\s*(.*)$/);
+                if (tokens[idx].nesting === 1) {
+                  var description = (m && m.length > 1) ? m[1] : '';
+                  var content = tokens[idx + 1].content;
+                  var html = convert(striptags.strip(content, ['script', 'style'])).replace(/(<[^>]*)=""(?=.*>)/g, '$1');
+                  var script = striptags.fetch(content, 'script');
+                  var style = striptags.fetch(content, 'style');
+
+                  var descriptionHTML = description ?
+                    md.render(description) :
+                    '';
+
+                  return `<demo-block>
+                        <div slot="desc">${html}</div>
+                        <div slot="highlight">`;
+                }
+                return '</div></demo-block>\n';
+              }
+            }]
+          ]
+        }
       },
       {
         test: /\.vue$/,
