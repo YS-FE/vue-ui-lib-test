@@ -31,7 +31,7 @@ const webpackConfig = merge(baseWebpackConfig, {
   output: {
     path: config.build.assetsRoot,
     filename: '[name]/index.js',
-    library: 'UiLib',
+    library: 'UiLib',// 将UiLib 对应的入口文件 打包为库，可以script引入
     libraryTarget: 'umd' // commonjs2
   },
   externals: {
